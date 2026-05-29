@@ -3,242 +3,207 @@
 #PSU CS350 
 #Homework #7
 
+import copy # Imported to handle in-place grid modifications safely
+
 '''
 Constraints:
 
-The test graphs are be represented as an adjacency matrix and as an adjacency list
-The test graphs are simple graphs (no self edges or multiple edges between nodes)
-The test graphs are unweighted graphs (no weight values assigned to any of the edges)
-The test graphs are not directional (there are no directions assigned to any of the edges)
-The test graphs may either be fully connected (a path exists from any node, to any other node) or disconnected. 
-Solution using the adjacency matrix must run in no worse than O(V2), where V is the cardinality (number) of Verticies in the graph and E is the cardinality (number) of Edges in the graph.
-Solution using the adjacency list must run in no worse than O(V + E) time, where V is the cardinality (number) of Verticies in the graph and E is the cardinality (number) of Edges in the graph.
-
-Each solution must run in no worse than O(V2) or O(V + E) time, where 
-V is the cardinality (number) of Vertices (nodes) in the graph and 
-E is the cardinality (number) of Edges in the graph.
-For this homework a main calling routine that tests your function on at least one example graph is required.
+    n == grid[i].length, n represents the height of a column
+    m == grid.length, m represents the length of a row
+    1 <= n, m <= 300
+    any element in the grid at grid[i][j] is either a '0' or a '1'
 '''
 
-'''GOAL: return an array (or Python List) storing the sizes (number of nodes) of each component found, 
-in the order in which they were found. The size of this array (or Python List) tells you how many 
-connected components exist, and the values stored in the array tell you how many nodes are in each.'''
+'''GOAL: You are given an m x n matrix representing a grid map of land and water. 
+The land is represented by any element in the grid with a value of '1', and the 
+water is represented by any element in the grid with a value of '0'. Every element 
+in the array must be populated with either a '1' or a '0', making this a binary grid.
+
+An island is surrounded by water and formed by connecting adjacent land elements horizontally or vertically. 
+You can assume that all four edges of the grid are all surrounded by water.
+Develop a function that takes in an m x n matrix (the grid) as an argument, and returns the total number of islands 
+found in that matrix.  We don't need to know what elements make up the islands, just how many islands exist. 
+You may solve this problem using any algorithmic approach that you want, in any time complexity that you want. '''
+
 def main(): 
     # ---------------------------------------------------------
     # TEST CASE 1
     # ---------------------------------------------------------
-    n1 = 11
-    ans1 = [11]
-    adj1 = [
-        [9],                # Node 0
-        [2, 5, 7],          # Node 1
-        [1, 3, 5, 6, 8],    # Node 2
-        [2, 6],             # Node 3
-        [5, 8, 9],          # Node 4
-        [1, 2, 4],          # Node 5
-        [2, 3],             # Node 6
-        [1],                # Node 7
-        [2, 4],             # Node 8
-        [4, 10],            # Node 9
-        [9, 0]              # Node 10
-    ]
-    mat1 = [ 
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0], 
-        [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0], 
-        [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0], 
-        [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0], 
-        [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0], 
-        [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], 
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0] 
+    m1 = 4
+    n1 = 4
+    ans1 = 2
+    grid1 = [
+      ["1","1","0","1"],
+      ["1","1","0","1"],
+      ["1","1","0","0"],
+      ["0","0","0","0"]
     ]
 
     # ---------------------------------------------------------
     # TEST CASE 2
     # ---------------------------------------------------------
-    n2 = 6
-    ans2 = [3, 3]
-    adj2 = [
-        [5],       # Node 0
-        [5],       # Node 1
-        [3, 4],    # Node 2
-        [2, 4],    # Node 3
-        [2, 3],    # Node 4
-        [0, 1]     # Node 5
-    ]
-    mat2 = [ 
-        [0, 0, 0, 0, 0, 1], 
-        [0, 0, 0, 0, 0, 1], 
-        [0, 0, 0, 1, 1, 0], 
-        [0, 0, 1, 0, 1, 0], 
-        [0, 0, 1, 1, 0, 0], 
-        [1, 1, 0, 0, 0, 0] 
+    m2 = 7
+    n2 = 5
+    ans2 = 4
+    grid2 = [
+      ["1","1","1","1","0"],
+      ["1","1","0","1","0"],
+      ["0","0","0","0","0"],
+      ["0","0","0","0","0"],
+      ["1","0","1","1","1"],
+      ["0","0","0","0","1"],
+      ["1","0","0","0","1"],
     ]
 
     # ---------------------------------------------------------
     # TEST CASE 3
     # ---------------------------------------------------------
-    n3 = 10
-    ans3 = [6, 4]
-    adj3 = [
-        [7],             # Node 0
-        [3, 5],          # Node 1
-        [4],             # Node 2
-        [1, 5],          # Node 3
-        [2, 7],          # Node 4
-        [1, 3, 6],       # Node 5
-        [5],             # Node 6
-        [0, 4, 8, 9],    # Node 7
-        [7],             # Node 8
-        [7]              # Node 9
-    ]
-    mat3 = [ 
-        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0], 
-        [0, 0, 0, 1, 0, 1, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 1, 0, 0, 0, 0], 
-        [0, 0, 1, 0, 0, 0, 0, 1, 0, 0], 
-        [0, 1, 0, 1, 0, 0, 1, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0], 
-        [1, 0, 0, 0, 1, 0, 0, 0, 1, 1], 
-        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+    m3 = 4
+    n3 = 2
+    ans3 = 1
+    grid3 = [
+      ["0","0"],
+      ["0","0"],
+      ["1","1"],
+      ["0","0"]
     ]
 
     # ---------------------------------------------------------
     # TEST CASE 4
     # ---------------------------------------------------------
-    n4 = 11
-    ans4 = [11]
-    adj4 = [
-        [1],                               # Node 0
-        [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],   # Node 1
-        [1],                               # Node 2
-        [1],                               # Node 3
-        [1],                               # Node 4
-        [1],                               # Node 5
-        [1],                               # Node 6
-        [1],                               # Node 7
-        [1],                               # Node 8
-        [1],                               # Node 9
-        [1]                                # Node 10
-    ]
-    mat4 = [ 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+    m4 = 7
+    n4 = 6
+    ans4 = 6
+    grid4 = [
+      ["1","0","0","1","0","0"],
+      ["1","0","0","1","0","1"],
+      ["1","0","0","0","0","0"],
+      ["0","0","0","0","0","0"],
+      ["0","0","1","0","0","0"], 
+      ["1","0","0","0","0","1"],
+      ["1","1","0","0","0","1"],
     ]
 
     # ---------------------------------------------------------
     # TEST CASE 5
     # ---------------------------------------------------------
-    n5 = 9
-    ans5 = [3, 4, 2]
-    adj5 = [
-        [1],          # Node 0
-        [0, 2],       # Node 1
-        [1],          # Node 2
-        [4, 5, 6],    # Node 3
-        [3],          # Node 4
-        [3],          # Node 5
-        [3],          # Node 6
-        [8],          # Node 7
-        [7]           # Node 8
-    ]
-    mat5 = [
-        [0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1, 0, 0], 
-        [0, 0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 1, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 0, 0, 1], 
-        [0, 0, 0, 0, 0, 0, 0, 1, 0] 
+    m5 = 4
+    n5 = 5
+    ans5 = 1
+    grid5 = [
+      ["1","1","1","1","0"],
+      ["1","1","0","1","0"],
+      ["1","1","0","0","0"],
+      ["0","0","0","0","0"]
     ]
 
     # ---------------------------------------------------------
     # TEST CASE 6
     # ---------------------------------------------------------
-    n6 = 13
-    ans6 = [4, 2, 3, 1, 3]
-    adj6 = [
-        [1, 3],      # Node 0
-        [0, 2],      # Node 1
-        [1, 3],      # Node 2
-        [0, 2],      # Node 3
-        [5],         # Node 4
-        [4],         # Node 5
-        [7, 8],      # Node 6
-        [6, 8],      # Node 7
-        [6, 7],      # Node 8
-        [],          # Node 9
-        [11],        # Node 10
-        [10, 12],    # Node 11
-        [11]         # Node 12
-    ]
-    mat6 = [ 
-        [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0], 
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1], 
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0] 
+    m6 = 4
+    n6 = 5
+    ans6 = 3
+    grid6 = [
+      ["1","1","0","0","0"],
+      ["1","1","0","0","0"],
+      ["0","0","1","0","0"],
+      ["0","0","0","1","1"]
     ]
 
     # Combine into iterable lists
+    test_m = [m1, m2, m3, m4, m5, m6]
     test_n = [n1, n2, n3, n4, n5, n6]
-    test_adj = [adj1, adj2, adj3, adj4, adj5, adj6]
-    test_mat = [mat1, mat2, mat3, mat4, mat5, mat6]
     test_ans = [ans1, ans2, ans3, ans4, ans5, ans6]
+    test_grid = [grid1, grid2, grid3, grid4, grid5, grid6]
 
     # Testing Loop
-    for i in range(len(test_n)):
+
+    for i in range(len(test_grid)):
         print(f"--- Test {i + 1} ---")
         
-        ans1 = mat_DPF(test_mat[i], len(test_mat[i][0]))
-        ans2 = adj_DPF(test_adj[i], len(test_adj[i]))
+        # Deepcopy ensures the original test grid isn't destroyed by graph traversal
+        grid_copy = copy.deepcopy(test_grid[i])
         
-        # Comparing sorted arrays just in case your graph traversal 
-        # finds connected components in a different order
-        if sorted(ans1) == sorted(ans2) == sorted(test_ans[i]):
-            print(f"Output1: {ans1}")
-            print(f"Output2: {ans2}")
+        ans = numIslands(grid_copy)
+        
+        if ans == test_ans[i]:
+            print(f"Output: {ans}")
             print("GOOD\n")
         else:
-            print(f"Output1:   {ans1}")
-            print(f"Output2:   {ans2}")
+            print(f"Output:   {ans}")
             print(f"Expected: {test_ans[i]}")
             print("BAD\n")
 
-def mat_DPF(adj_mat, total_nodes):
+def numIslands(grid):
+    return len(mat_DPF(grid))
+
+def bfs(adj_matrix, total_nodes, start_node, visited):
+    #---NEW!----make an empty order array---#
+    order = []
+    #make my empty queue
+    queue = []
+    #push start node to the queue
+    queue.append(start_node)
+    #VISIT IT! We visit as we add!
+    visited[start_node] =True
+    order.append(start_node)
+
+    while queue:
+        current_node = queue.pop() #grabs from the end
+        if visited[current_node] == False:
+            #this current_node has not yet been visited
+            #visit the node
+            visited[current_node] = True
+            order.append(current_node)
+
+            #loop over the neighbors and push all unvisited to the stack
+            #----THIS IS THE SECTION DIFFERENT FROM AN ADJACENCY LIST----#
+            #row we want to iterate is the adjacency matrix at current node
+            neighbor = 0 #each column is a potential neighbor node
+            while neighbor < total_nodes: #row and column length will always be total_nodes
+                if visited[neighbor] == False and adj_matrix[current_node][neighbor] == 1:
+                    #if this element is a 1, it is a neighbor or current
+                    #append it if it is unvisited
+                    queue.append(neighbor)
+                neighbor += 1
+
+    return order
+ 
+    '''#Start the BFS loop
+    while queue:
+        current_node = queue.pop(0) #grabs from the front of the queue
+        #loop over the neighbors and push all unvisited to the stack
+        neighbor_list = adj_list[current_node]
+        length_neighbor_list = len(neighbor_list)
+        index = 0
+        while index < length_neighbor_list:
+            neighbor = neighbor_list[index]
+            if visited[neighbor] == False:
+                #VISIT as we add to the queue
+                queue.append(neighbor)
+                visited[neighbor] = True
+                order.append(neighbor)
+            index += 1
+
+    print(f"The visited array shows we have seen each node: {visited}")
+    print(f"The order we visited the nodes: {order}")'''
+
+
+def mat_DPF(adj_mat):
+    total_nodes = len(adj_mat[0])
+
     visited = [False] * total_nodes
     component_sizes = []
 
     # Loop through every single node in the graph
-    for start_node in range(total_nodes):
+    for h in range(total_nodes):
         # If it's unvisited, we've found a brand new connected component
-        if visited[start_node] == False:
-            component = dfs_mat(adj_mat, total_nodes, start_node, visited)
-            component_sizes.append(len(component))
+        if visited[h] == False:
+            for k in range(total_nodes):
+                if adj_mat[h][k] != 0:
+                    component = bfs(adj_mat, total_nodes, h, visited)
+                    component_sizes.append(len(component))
+                    break
 
     return component_sizes
 
