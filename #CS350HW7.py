@@ -134,8 +134,65 @@ def main():
             print(f"Expected: {test_ans[i]}")
             print("BAD\n")
 
+def recursive_search(grid, r, c, r_max, c_max):
+    #if we are out of bounds return
+    if r >= len(grid) or c >= len(grid[0]):
+        return 
+    if r < 0 or c < 0:
+        return 
+    if grid[r][c] == "0": #if weve reached the edge of the island
+        if r_max < r:
+            r_max = r # record max r reached to avoid re-checking
+        if c_max < c:
+            c_max = c # record max c reached to avoid re-checking
+    if grid[r][c] == "1":
+        grid[r][c] = "0"  # Mark as visited by "sinking" it to water
+        #check all 4 conected directions for land (recusrivly)
+        recursive_search(grid, r, c+1, r_max, c_max)
+        recursive_search(grid, r, c-1, r_max, c_max)
+        recursive_search(grid, r+1, c, r_max, c_max)
+        recursive_search(grid, r-1, c, r_max, c_max)
+    return
+
 def numIslands(grid):
-    return len(mat_DPF(grid))
+    if not grid:
+        return 0
+
+    rows = len(grid)
+    cols = len(grid[0])
+    islands = 0
+
+    # Loop through every cell in the grid
+    for r in range(rows):
+        for c in range(cols):
+            # If we find unvisited land, we found a new island!
+            if grid[r][c] == "1":
+                islands += 1
+                r_max = 0
+                c_max = 0
+                recursive_search(grid, r, c, r_max, c_max)#mark all connected "1"s to "0"s
+                if r_max != 0:#increment r based on max value reached in recursion
+                    r = r_max
+                if c_max != 0:#increment c based on max value reached in recursion
+                    c = c_max
+
+    return islands
+'''
+def mat_BFS(adj_mat, n, m):
+    component_sizes = []
+
+    # Loop through every single node in the graph
+    for h in range(n):
+        # If it's unvisited, we've possibly found a brand new connected component
+        if adj_max[h] == False:
+            #check the col for at least one '1' value,
+            for k in range(m):
+                if adj_mat[h][k] != 0:
+                    component = bfs(adj_mat, total_nodes, h, visited)
+                    component_sizes.append(len(component))
+                    break
+    return component_sizes
+
 
 def bfs(adj_matrix, total_nodes, start_node, visited):
     #---NEW!----make an empty order array---#
@@ -161,15 +218,15 @@ def bfs(adj_matrix, total_nodes, start_node, visited):
             #row we want to iterate is the adjacency matrix at current node
             neighbor = 0 #each column is a potential neighbor node
             while neighbor < total_nodes: #row and column length will always be total_nodes
-                if visited[neighbor] == False and adj_matrix[current_node][neighbor] == 1:
+                if visited[neighbor] == False and adj_matrix[current_node][neighbor] == "1":
                     #if this element is a 1, it is a neighbor or current
                     #append it if it is unvisited
                     queue.append(neighbor)
                 neighbor += 1
 
     return order
- 
-    '''#Start the BFS loop
+ '''
+'''#Start the BFS loop
     while queue:
         current_node = queue.pop(0) #grabs from the front of the queue
         #loop over the neighbors and push all unvisited to the stack
@@ -188,25 +245,7 @@ def bfs(adj_matrix, total_nodes, start_node, visited):
     print(f"The visited array shows we have seen each node: {visited}")
     print(f"The order we visited the nodes: {order}")'''
 
-
-def mat_DPF(adj_mat):
-    total_nodes = len(adj_mat[0])
-
-    visited = [False] * total_nodes
-    component_sizes = []
-
-    # Loop through every single node in the graph
-    for h in range(total_nodes):
-        # If it's unvisited, we've found a brand new connected component
-        if visited[h] == False:
-            for k in range(total_nodes):
-                if adj_mat[h][k] != 0:
-                    component = bfs(adj_mat, total_nodes, h, visited)
-                    component_sizes.append(len(component))
-                    break
-
-    return component_sizes
-
+'''
 def dfs_mat(adj_matrix, total_nodes, start_node, visited):
 
     order = []
@@ -236,7 +275,7 @@ def dfs_mat(adj_matrix, total_nodes, start_node, visited):
                 neighbor += 1
 
     return order
-    
+
 def adj_DPF(adj_list, total_nodes):
     visited = [False] * total_nodes
     component_sizes = []
@@ -278,7 +317,7 @@ def dfs_adj(adj_list, start_node, visited):
                 index += 1
 
     return order
-
+'''
 if __name__ == "__main__":
 
     main()
